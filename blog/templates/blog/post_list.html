@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<head>
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="/static/semantic/semantic.css">
+	<script
+	  src="https://code.jquery.com/jquery-3.1.1.min.js"
+	  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+	  crossorigin="anonymous"></script>
+	<script src="/static/semantic/semantic.js"></script>
+	<style>
+		body{
+		    padding: 1rem;
+		       }
+		div{
+			padding: 5px;
+		 }
+		.jhh{
+			padding: 1px;
+		}
+		{
+		  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+		}
+
+		.box {
+		  font: 10px sans-serif;
+		}
+
+		.box line,
+		.box rect,
+		.box circle {
+		  stroke: #000;
+		  stroke-width: 1px;
+		}
+
+		.box .center {
+		  stroke-dasharray: 3,3;
+		}
+
+		.box .outlier {
+		  fill: none;
+		  stroke: #000;
+		}
+
+		.axis {
+		  font: 13px sans-serif;
+		}
+
+		.axis path,
+		.axis line {
+		  fill: none;
+		  stroke: #000;
+		  shape-rendering: crispEdges;
+		}
+
+		.x.axis path {
+		  fill: none;
+		  stroke: #000;
+		  shape-rendering: crispEdges;
+		}
+
+	</style>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="/static/box.js"></script>
+</head>
+<body>
+<div>
+	<center><h2>Arabidopsis thaliana stress database</h2></center>
+</div>
+
+<div class="ui container"><center>
+	<p style="text-align:left">· This database shows 48,359 genes of Arabidopsis Thaliana showing reaction against biotic-stress and abiotic-stress by four tissues and expressed as boxplot using D3.</p>
+	<p style="text-align:left">· The study used to produce the database was downloaded from NCBI, and a total of 7 SRP studies and 314 SRR studies were used.</p>
+	<p style="text-align:left">· For gene information, Gene Ontology Annotations in TAIR was used and the gene used in DB was annotated for a total of 14 columns.</p>
+	<p style="text-align:left">· <a href="/study" target="_blank">SRP Study Information Link</a></p>
+	<p style="text-align:left">· <a href="/rf" target="_blank">Randomforest Classification Link</a></p>
+</div></center>
+
+<div class="ui container"><center>
+	<form method="GET" action="" class="ui input">
+		<input class="prompt" type="text" name="gene" placeholder="Search For...">
+    <form method="GET" action = "ACTION_OR_VIEW_URL_ON_SUBMIT_HERE">
+		<label for="tissueSelect"></label>
+		<select type="text" id="tissueSelect" name="tissueSelect">
+		    {% for tissue in tissue_list_set %}
+		    	<option>{{tissue}}</option>
+		    {% endfor %}
+		</select>
+		 <input type="submit" value="Search"/>
+	</form>
+	</form></center>
+</div>
+
+<div class="ui two column doubling stackable grid container">
+  <div class="column">
+  	<p><center><h4>Treatment expression boxplot</h4></center></p>
+  	<p id="target"></p>
+  </div>
+  <div class="column">
+  	{% for x in annotation_1 %}
+	<p><center><h4>Gene Annotation</h4></center></p>
+	<p>· locus name - {{x.locus_name}}</p>
+	<p>· TAIR accession - {{x.TAIR_accession}}</p>
+	<p>· object name - {{x.object_name}}</p>
+	<p>· relationship type - {{x.relationship_type}}</p>
+	<p>· GO term - {{x.GO_term}}</p>
+	<p>· GO ID - {{x.GO_ID}}</p>
+	<p>· TAIR Keyword_ID - {{x.TAIR_Keyword_ID}}</p>
+	<p>· Aspect - {{x.Aspect}}</p>
+	<p>· Goslim term - {{x.Goslim_term}}</p>
+	<p>· Evidence code - {{x.Evidence_code}}</p>
+	<p>· Evidence description - {{x.Evidence_description}}</p>
+	<p>· Reference - {{x.Reference}}</p>
+	<p>· Annotator - {{x.Annotator}}</p>
+	<p>· Date annotated - {{x.Date_annotated}}</p>
+	{% endfor %}
+	<p><center><h4>Treatment Annotation</h4></center></p>
+	<p>· {{Name1}} - {{FullName1}} - {{Description1}}</p>
+	<p>· {{Name2}} - {{FullName2}} - {{Description2}}</p>
+	<p>· {{Name3}} - {{FullName3}} - {{Description3}}</p>
+	<p>· {{Name4}} - {{FullName4}} - {{Description4}}</p>
+  </div>
+<script>
+var labels = true; // show the text labels beside individual boxplots?
+
+var margin = {top: 20, right: 50, bottom: 70, left: 50};
+var  width = 450 - margin.left - margin.right;
+var height = 500 - margin.top - margin.bottom;
+
+var min = Infinity,
+    max = -Infinity;
+
+// parse in the data
+d3.csv('{{csv_file}}', function(error, csv) {
+	// using an array of arrays with
+	// data[n][2]
+	// where n = number of columns in the csv file
+	// data[i][0] = name of the ith column
+	// data[i][1] = array of values of ith column
+
+	var treat_list = [];
+	for(var i = 0; i < csv.length; i++){
+			treat_list.push(csv[i].treatment)
+		};
+
+	var set_treat = treat_list.reduce(function(a,b){
+  		if (a.indexOf(b) < 0 ) a.push(b);
+  			return a;
+  		},[]);
+
+
+
+	var data = [];
+
+	for (var i = 0; i <  set_treat.length; i ++){
+		data[i]    = [];
+		data[i][0] = [];
+		data[i][1] = [];
+
+		data[i][0].push(set_treat[i])
+
+		for (var j =0; j < csv.length; j++){
+			if(csv[j].treatment == set_treat[i]){
+				data[i][1].push(Math.fround(csv[j].tpm));
+			};
+
+		}
+	}
+
+
+
+	csv.forEach(function(x){
+		var tpm_value = Math.fround(x.tpm)
+
+		if (tpm_value > max) max = tpm_value;
+		if (tpm_value < min) min = tpm_value;
+
+	})
+
+	var chart = d3.box()
+		.whiskers(iqr(1.5))
+		.height(height)
+		.domain([min, max])
+		.showLabels(labels);
+
+	var svg = d3.select("#target").append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+		.attr("class", "box")
+		.append("g")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	// the x-axis
+	var x = d3.scale.ordinal()
+		.domain( data.map(function(d) {console.log(d[0]); return d[0] } ) )
+		.rangeRoundBands([0 , width], 0.7, 0.3);
+
+	var xAxis = d3.svg.axis()
+		.scale(x)
+		.orient("bottom");
+
+	// the y-axis
+	var y = d3.scale.linear()
+		.domain([min, max])
+		.range([height + margin.top, 0 + margin.top]);
+
+	var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+	// draw the boxplots
+	var colorCodes = ['#F7DC6F', '#CD5C5C', '#58D68D','#07eded', '#513232', '#4B3F3F', '#CF1414'];
+
+
+	svg.selectAll(".box")
+      .data(data)
+	  .enter().append("g")
+		.attr("transform", function(d) {console.log(x(d[0])); return "translate(" +  x(d[0])  + "," + margin.top + ")"; } )
+		.call(chart.width(x.rangeBand()))
+		.attr('fill',function(d,i) {for(var x=0; x < set_treat.length; x++)
+			if(i==x){console.log(colorCodes[x]);return colorCodes[x]}
+
+	})
+
+
+	// add a title
+	svg.append("text")
+        .attr("x", (width / 2))
+        .attr("y", 0 + (margin.top / 2))
+        .attr("text-anchor", "middle")
+        .style("font-size", "14px")
+        //.style("text-decoration", "underline")
+        .text("{{query}}  {{tissue}}");
+
+	 // draw y axis
+	svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+		.append("text") // and text1
+		  .attr("transform", "rotate(-90)")
+		  .attr("y", -40)
+		  .attr('x', -200)
+		  .attr("dy", ".71em")
+		  .style("text-anchor", "end")
+		  .style("font-size", "10px")
+		  .text("TPM");
+
+	// draw x axis
+	svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + (height  + margin.top + 10) + ")")
+      .call(xAxis)
+	  .append("text")          // text label for the x axis
+        .attr("x", (width / 2) )
+        .attr("y",  10 )
+		.attr("dy", ".71em")
+        .style("text-anchor", "middle")
+		.style("font-size", "15px")
+        //.text("treat");
+
+
+
+});
+
+
+// Returns a function to compute the interquartile range.
+function iqr(k) {
+  return function(d, i) {
+    var q1 = d.quartiles[0],
+        q3 = d.quartiles[2],
+        iqr = (q3 - q1) * k,
+        i = -1,
+        j = d.length;
+    while (d[++i] < q1 - iqr);
+    while (d[--j] > q3 + iqr);
+    return [i, j];
+  };
+}
+
+$('.ui.accordion').accordion();
+
+</script>
+</body>

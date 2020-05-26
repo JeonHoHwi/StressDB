@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>RandomForest Classification</title>
+	<link rel="stylesheet" type="text/css" href="/static/semantic/semantic.css">
+	<script
+	  src="https://code.jquery.com/jquery-3.1.1.min.js"
+	  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+	  crossorigin="anonymous"></script>
+	<script src="/static/semantic/semantic.js"></script>
+		<style>
+		body{
+		    padding: 1rem;
+		       }
+		div{
+			padding: 10px;
+		 }
+		{
+		  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+		}
+	</style>
+</head>
+<body>
+	<div>
+		<center><h2>RandomForest Classification</h2></center>
+	</div>
+	<div class="ui container"><center>
+		<p style="text-align:left">· This page grouped related genes by performing RandomForest Classification using expression levels of three types of tissues: leaf, aerial shoot and root.</p>
+		<p style="text-align:left">· leaf and mature leaf have a small number of samples and are grouped in 'leaf'.</p>
+		<p style="text-align:left">· If you click on the Gene id go to the search for the gene corresponding page.</p>
+		<p style="text-align:left">· RandomForest Classification condition : Repeat Run - 100 times, estimator number - 5000</p>
+	</center>
+	<center><div class="ui top attached tabular menu">
+	  <a class="item active" data-tab="first">Leaf</a>
+	  <a class="item" data-tab="second">Aerial Shoot</a>
+	  <a class="item" data-tab="third">Root</a>
+	</div>
+		<div class="ui bottom attached tab segment active" data-tab="first">
+			<table class="ui celled table">
+			  <thead>
+			    <tr><th>Symbol/Description</th>
+			    <th>Gene id</th>
+			  </tr></thead>
+			  <tbody>
+			  	{% for leaf in rf_leaf %}
+			    <tr>
+			      <td>{{leaf.Sym_Description}}</td>
+			      <td><a href="/?gene={{leaf.target_id}}&tissueSelect=leaf" target="_blank">{{leaf.target_id}}</a></td>
+			    </tr>
+			    {% endfor %}
+			  </tbody>
+			</table>
+		</div>
+	<div class="ui bottom attached tab segment" data-tab="second">
+			<table class="ui celled table">
+			  <thead>
+			    <tr><th>Symbol/Description</th>
+			    <th>Gene id</th>
+			  </tr></thead>
+			  <tbody>
+			  	{% for shoot in rf_shoot %}
+			    <tr>
+			      <td>{{shoot.Sym_Description}}</td>
+			      <td><a href="/?gene={{shoot.target_id}}&tissueSelect=aerial+shoot" target="_blank">{{shoot.target_id}}</a></td>
+			    </tr>
+			    {% endfor %}
+			  </tbody>
+			</table>
+	</div>
+	<div class="ui bottom attached tab segment" data-tab="third">
+			<table class="ui celled table">
+			  <thead>
+			    <tr><th>Symbol/Description</th>
+			    <th>Gene id</th>
+			  </tr></thead>
+			  <tbody>
+			  	{% for root in rf_root %}
+			    <tr>
+			      <td>{{root.Sym_Description}}</td>
+			      <td><a href="/?gene={{root.target_id}}&tissueSelect=root" target="_blank">{{root.target_id}}</a></td>
+			    </tr>
+			    {% endfor %}
+			  </tbody>
+			</table>
+	</div></center>
+</body>
+<script type="text/javascript">
+	$('.menu .item')
+ 	 .tab()
+	;
+</script>
+</html>
+
